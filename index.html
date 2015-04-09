@@ -73,26 +73,29 @@
   <body unresolved fullbleed>
 
     <template is="auto-binding" id="t">
+     <!-- Route controller. -->
+      <flatiron-director route="{{route}}" autoHash></flatiron-director>
+
+     <!-- Keyboard nav controller. -->
+      <core-a11y-keys id="keys" target="{{parentElement}}"
+        keys="up down left right space space+shift"
+        on-keys-pressed="{{keyHandler}}"></core-a11y-keys>
+
+     <!-- Dynamic content controller -->
+      <core-ajax id="ajax" url="{{selectedPage.page.url}}" handleAs="document"
+       on-core-response="{{onResponse}}"></core-ajax>
 
       <core-scaffold id="scaffold">
-        <!-- Route controller. -->
-        <flatiron-director route="{{route}}" autoHash></flatiron-director>
-
-         <!-- Keyboard nav controller. -->
-          <core-a11y-keys id="keys" target="{{parentElement}}"
-                          keys="up down left right space space+shift"
-                          on-keys-pressed="{{keyHandler}}"></core-a11y-keys>
-
         <nav>
           <core-toolbar>
             <span>Menu</span>
           </core-toolbar>
 
-          <core-menu valueattr="linked" selected="{{test}}">
+          <core-menu valueattr="linked" selected="{{test}}" selectedModel="{{selectedPage}}">
             <template repeat="{{page in myArray}}">
               <paper-item hash="{{page.linked}}" noink>
                 <core-icon icon="{{page.icon}}"></core-icon>
-                <a href="#{{page.linked}}">{{page.name}}</a>
+                <a href="{{page.url}}">{{page.name}}</a>
               </paper-item>
             </template>
           </core-menu>
@@ -101,7 +104,7 @@
         <!-- flex makes the bar span across the top of the main content area -->
         <core-toolbar tool flex>
          <!-- flex spaces this element and justifies the icons to the right-side -->
-         <div>Titre de mon Application</div>
+         <div>{{selectedPage.page.name}}</div>
         </core-toolbar>
 
         <div layout horizontal center-center fit id="content">
@@ -117,16 +120,17 @@
         </div>
 
       </core-scaffold>
+
     </template>
 
     <script>
       var template = document.querySelector('#t');
       template.myArray = [
-        {name: 'page 1', linked: 'one', icon: 'label-outline'},
-        {name: 'page 2', linked: 'two', icon: 'label-outline'},
-        {name: 'app', linked: 'three', icon: 'apps'},
-        {name: 'using', linked: 'four', icon: 'work'},
-        {name: 'Polymer', linked: 'five', icon: 'polymer'},
+        {name: 'page 1', linked: 'one', icon: 'label-outline', url: 'tutorial/intro.html'},
+        {name: 'page 2', linked: 'two', icon: 'label-outline', url: 'tutorial/page-2.html'},
+        {name: 'app', linked: 'three', icon: 'apps', url: 'tutorial/app.html'},
+        {name: 'using', linked: 'four', icon: 'work', url: 'tutorial/using.html'},
+        {name: 'Polymer', linked: 'five', icon: 'polymer', url: 'tutorial/polymer.html'},
       ];
 
       template.keyHandler = function(e, detail, sender) {
@@ -145,6 +149,14 @@
             detail.shift ? pages.selectPrevious() : pages.selectNext();
             break;
         }
+      };
+
+      template.onResponse = function(e, detail, sender) {
+        var article = detail.response.querySelector('scroll-area article');
+
+        var pages = document.querySelector('#pages');
+        this.injectBoundHTML(article.innerHTML,
+                             pages.selectedItem.firstElementChild);
       };
     </script>
   </body>
